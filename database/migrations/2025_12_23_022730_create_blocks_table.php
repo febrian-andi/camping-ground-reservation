@@ -11,16 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('camping_grounds', function (Blueprint $table) {
+        Schema::create('blocks', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('camping_ground_id')->references('id')->on('camping_grounds')->onDelete('cascade');
             $table->string('name');
-            $table->string('slug')->unique();
-            $table->text('description');
-            $table->string('location');
-            $table->integer('base_price')->default(0);
-            $table->json('facilities')->nullable();
-            $table->json('rules')->nullable();
+            $table->integer('daily_price');
             $table->boolean('is_active')->default(true);
+            $table->boolean('is_rentable')->default(true);
             $table->softDeletes();
             $table->timestamps();
         });
@@ -31,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('camping_grounds');
+        Schema::dropIfExists('blocks');
     }
 };
