@@ -27,6 +27,21 @@ class CampingGroundForm
                                     ->required(),
                                 RichEditor::make('description')
                                     ->required()
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'underline',
+                                        'strike',
+                                        'h1',
+                                        'h2',
+                                        'h3',
+                                        'link',
+                                        'bulletList',
+                                        'orderedList',
+                                        'blockquote',
+                                        'undo',
+                                        'redo',
+                                    ])
                                     ->extraAttributes(['style' => 'min-height: 150px;'])
                                     ->columnSpanFull(),
                                 TextInput::make('location')
@@ -65,6 +80,8 @@ class CampingGroundForm
                                     ->schema([
                                         FileUpload::make('image')
                                             ->image()
+                                            ->disk('public')
+                                            ->visibility('public')
                                             ->directory('images/camping_ground')
                                             ->getUploadedFileNameForStorageUsing(function ($file) {
                                                 $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
@@ -83,10 +100,12 @@ class CampingGroundForm
                         Tab::make('Layout')
                             ->schema([
                                 Repeater::make('camping_ground_layout')
-                                    ->relationship('campingGroundLayouts')
+                                    ->relationship('campingGroundLayout')
                                     ->schema([
                                         FileUpload::make('layout_image')
                                             ->image()
+                                            ->disk('public')
+                                            ->visibility('public')
                                             ->directory('images/camping_ground_layout')
                                             ->getUploadedFileNameForStorageUsing(function ($file) {
                                                 $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);

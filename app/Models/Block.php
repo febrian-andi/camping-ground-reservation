@@ -16,11 +16,19 @@ class Block extends Model
         'name',
         'daily_price',
         'is_active',
-        'is_rentable',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
     ];
 
     public function campingGround()
     {
         return $this->belongsTo(CampingGround::class);
+    }
+
+    public function blockAvailabilities()
+    {
+        return $this->hasMany(BlockAvailability::class);
     }
 }

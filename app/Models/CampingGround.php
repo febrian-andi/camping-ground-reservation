@@ -25,6 +25,7 @@ class CampingGround extends Model
     protected $casts = [
         'facilities' => 'array',
         'rules' => 'array',
+        'is_active' => 'boolean',
     ];
 
 
@@ -65,7 +66,7 @@ class CampingGround extends Model
         return $this->hasMany(CampingGroundImage::class);
     }
 
-    public function campingGroundLayouts()
+    public function campingGroundLayout()
     {
         return $this->hasOne(CampingGroundLayout::class);
     }
