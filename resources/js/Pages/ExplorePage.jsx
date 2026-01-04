@@ -15,7 +15,7 @@ export default function ExplorePage({ campgrounds }) {
     }, [searchTerm]);
 
     return (
-        <AppLayout>
+        <>
             <div className="space-y-6 animate-in fade-in duration-500 p-4">
                 {/* Hero */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
@@ -81,6 +81,8 @@ export default function ExplorePage({ campgrounds }) {
                     ))}
                 </div>
             </div>
-        </AppLayout>
+        </>
     );
 }
+
+ExplorePage.layout = (page) => <AppLayout>{page}</AppLayout>;

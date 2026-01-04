@@ -21,7 +21,10 @@ export default function CampingGroundDetailPage({ campground }) {
         maxCheckOutTime: "",
         notes: "",
         totalAmount: 0,
-        paymentMethod: "ON_ARRIVAL",
+        totalNights: 0,
+        paymentType: "full_paid",
+        paymentMethod: "transfer",
+        paymentProvider: "BCA",
         proofUploaded: false,
         proofImage: null,
     });
@@ -49,35 +52,11 @@ export default function CampingGroundDetailPage({ campground }) {
         }));
     }, [data.checkInTime]);
 
-    // useEffect(() => {
-    //     if (data.checkIn && data.checkOut) {
-    //         setIsCheckingAvailability(true);
-    //         axios
-    //             .get(route("booking.check-availability"), {
-    //                 params: {
-    //                     check_in_date: data.checkIn,
-    //                     check_out_date: data.checkOut,
-    //                     scheduled_check_in_time: data.checkInTime,
-    //                     camping_ground_id: campground.id,
-    //                 },
-    //             })
-    //             .then((response) => {
-    //                 setUnavailableBlockIds(response.data.unavailable_block_ids);
-    //             })
-    //             .catch((error) => {
-    //                 console.error("Failed to check availability", error);
-    //             })
-    //             .finally(() => {
-    //                 setIsCheckingAvailability(false);
-    //             });
-    //     }
-    // }, [data.checkIn, data.checkOut, data.checkInTime, campground.id]);
-
     const checkAvailability = () => {
         if (data.checkIn && data.checkOut) {
             setIsCheckingAvailability(true);
             return axios
-                .get(route("booking.check-availability"), {
+                .get(route("api.user.booking.check-availability"), {
                     params: {
                         check_in_date: data.checkIn,
                         check_out_date: data.checkOut,
@@ -97,8 +76,8 @@ export default function CampingGroundDetailPage({ campground }) {
         }
     };
 
-    function calculateTotal(block, checkIn, checkOut) {
-        if (!block || !checkIn || !checkOut) return 0;
+    function calculateNights(checkIn, checkOut) {
+        if (!checkIn || !checkOut) return 0;
 
         const nights = Math.max(
             Math.ceil(
@@ -107,46 +86,61 @@ export default function CampingGroundDetailPage({ campground }) {
             1
         );
 
-        return block.daily_price * nights;
+        return nights;
+    }
+
+    function calculateTotal(block, totalNights) {
+        if (!block || !totalNights) return 0;
+
+        if (data.paymentType === "partial_paid") {
+            return block.daily_price * totalNights * 0.5;
+        } else {
+            return block.daily_price * totalNights;
+        }
     }
 
     useEffect(() => {
-        const total = calculateTotal(
-            selectedBlock,
-            data.checkIn,
-            data.checkOut
-        );
+        const nights = calculateNights(data.checkIn, data.checkOut);
+        const total = calculateTotal(selectedBlock, nights);
+
+        if (nights === 0 || total === 0) return;
 
         setData((prev) => ({
             ...prev,
+            totalNights: nights,
             totalAmount: total,
         }));
-    }, [selectedBlock, data.checkIn, data.checkOut]);
+    }, [selectedBlock, data.checkIn, data.checkOut, data.paymentType]);
 
     const confirmReservation = () => {
         transform((data) => ({
             ...data,
+            block_id: selectedBlock?.id,
             check_in_date: data.checkIn,
             check_out_date: data.checkOut,
-            block_id: selectedBlock?.id,
-            payment_method:
-                data.paymentMethod === "TRANSFER" ? "transfer" : "on_arrival",
-            proof_image: data.proofImage,
             scheduled_check_in_time: data.checkInTime,
+            payment_type: data.paymentType,
+            payment_method: data.paymentMethod,
+            payment_provider: data.paymentProvider,
+            proof_image: data.proofImage,
         }));
 
-        post(route("booking.store"), {
-            onSuccess: () => {
-                setBookingStep(4);
-            },
-            onError: (errors) => {
-                toast.error("Reservasi Gagal. Silahkan coba lagi.");
-            },
-        });
+        if (data.proofUploaded && data.proofImage) {
+            post(route("booking.store"), {
+                onSuccess: () => {
+                    setBookingStep(4);
+                },
+                onError: (errors) => {
+                    toast.error("Reservasi Gagal. Silahkan coba lagi.");
+                },
+            });
+        } else {
+            toast.error("Silahkan upload bukti pembayaran.");
+        }
     };
 
     return (
-        <AppLayout>
+        <>
             <div className="space-y-8 animate-in slide-in-from-right-10 duration-500 pb-10 p-4">
                 <Link href={route("explore")}>
                     <Button variant="ghost">
@@ -185,6 +179,8 @@ export default function CampingGroundDetailPage({ campground }) {
                 imageUrl={`/storage/${campground?.camping_ground_layout?.layout_image}`}
                 altText={campground?.name}
             />
-        </AppLayout>
+        </>
     );
 }
+
+CampingGroundDetailPage.layout = (page) => <AppLayout>{page}</AppLayout>;

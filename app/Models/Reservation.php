@@ -23,6 +23,7 @@ class reservation extends Model
         'total_nights',
         'total_price',
         'status',
+        'payment_status',
     ];
 
     public function user()
@@ -48,5 +49,10 @@ class reservation extends Model
     public function blockAvailabilities()
     {
         return $this->hasMany(BlockAvailability::class);
+    }
+
+    public function reservationCancellationRequest()
+    {
+        return $this->hasOne(ReservationCancellationRequest::class);
     }
 }

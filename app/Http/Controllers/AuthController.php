@@ -2,15 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Services\Auth\AuthService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class AuthController extends Controller
 {
+    protected $authService;
+
+    public function __construct(AuthService $authService)
+    {
+        $this->authService = $authService;
+    }
     public function store(Request $request)
     {
         $credentials = $request->validate([
@@ -18,7 +22,7 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
-        if (Auth::attempt($credentials)) {
+        if ($this->authService->attemptLogin($credentials)) {
             $request->session()->regenerate();
             $user = $request->user();
 
@@ -38,7 +42,7 @@ class AuthController extends Controller
 
     public function destroy(Request $request)
     {
-        Auth::logout();
+        $this->authService->logout();
 
         $request->session()->invalidate();
 
@@ -56,16 +60,9 @@ class AuthController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'phone_number' => $request->phone_number,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        $user = $this->authService->register($request->only('name', 'phone_number', 'email', 'password'));
 
-        $user->assignRole('user');
-
-        Auth::login($user);
+        $this->authService->loginUser($user);
 
         return redirect()->route('explore');
     }

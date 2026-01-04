@@ -25,10 +25,10 @@ export default function CampingGroundInfo({ campground }) {
                         type="button"
                         onClick={() => scrollGallery("left")}
                         className="absolute left-5 top-1/2 -translate-y-1/2 -translate-x-4
-                            z-30 hidden md:flex items-center justify-center
+                            z-30 flex items-center justify-center
                             border border-gray-400 bg-white/80 hover:bg-white
-                            text-gray-800 p-3 rounded-full shadow-lg backdrop-blur-sm
-                            transition-all opacity-0 group-hover:opacity-100"
+                            text-gray-800 p-1 sm:p-2 rounded-full shadow-lg backdrop-blur-sm
+                            transition-all opacity-100 sm:opacity-0 group-hover:opacity-100"
                         style={{ pointerEvents: "auto" }}
                         aria-label="Scroll left"
                     >
@@ -70,10 +70,10 @@ export default function CampingGroundInfo({ campground }) {
                         type="button"
                         onClick={() => scrollGallery("right")}
                         className="absolute right-5 top-1/2 -translate-y-1/2 translate-x-4
-                            z-30 hidden md:flex items-center justify-center
+                            z-30 flex items-center justify-center
                             border border-gray-400 bg-white/80 hover:bg-white
-                            text-gray-800 p-3 rounded-full shadow-lg backdrop-blur-sm
-                            transition-all opacity-0 group-hover:opacity-100"
+                            text-gray-800 p-1 sm:p-2 rounded-full shadow-lg backdrop-blur-sm
+                            transition-all opacity-100 sm:opacity-0 group-hover:opacity-100"
                         style={{ pointerEvents: "auto" }}
                         aria-label="Scroll right"
                     >
@@ -144,7 +144,7 @@ export default function CampingGroundInfo({ campground }) {
                                         className="flex items-center gap-2 text-sm text-gray-600"
                                     >
                                         <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
-                                        {r}
+                                        {r.rule}
                                     </li>
                                 ))
                             ) : (

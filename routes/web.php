@@ -18,14 +18,14 @@ Route::get('/', function () {
  */
 Route::middleware('guest')->group(function () {
     Route::get('/login', function () {
-        return Inertia::render('auth/LoginPage');
+        return Inertia::render('Auth/LoginPage');
     })->name('login');
 
     Route::post('/login', [AuthController::class, 'store']);
 
 
     Route::get('/register', function () {
-        return Inertia::render('auth/RegisterPage');
+        return Inertia::render('Auth/RegisterPage');
     })->name('register');
 
     Route::post('/register', [AuthController::class, 'create']);
@@ -33,31 +33,42 @@ Route::middleware('guest')->group(function () {
 
 /**
  * =========================
- * AUTH ONLY
+ * USER PAGES
+ * =========================
+ */
+Route::middleware(['auth', 'role:user'])->group(function () {
+    Route::get('/explore', [CampingGroundController::class, 'index'])->name('explore');
+    Route::get('/profile', [UserProfileController::class, 'index'])->name('profile');
+    Route::get('/booking-history', [BookingController::class, 'index'])->name('booking-history');
+    Route::get('/camping-ground-detail/{slug}', [CampingGroundController::class, 'show'])->name('camping-ground-detail');
+});
+
+/**
+ * =========================
+ * USER ACTIONS (FORM)
  * =========================
  */
 Route::middleware(['auth', 'role:user'])->group(function () {
     Route::post('/logout', [AuthController::class, 'destroy'])
         ->name('logout');
-
-    Route::get('/explore', [CampingGroundController::class, 'index'])
-        ->name('explore');
-
-    Route::get('/camping-ground-detail/{slug}', [CampingGroundController::class, 'show'])
-        ->name('camping-ground-detail');
-
-    Route::get('/booking-history', [BookingController::class, 'index'])
-        ->name('booking-history');
-
-    Route::get('/profile', [UserProfileController::class, 'index'])
-        ->name('profile');
-
-    Route::get('/booking/check-availability', [BookingController::class, 'checkAvailability'])
-        ->name('booking.check-availability');
-
-    Route::post('/booking', [BookingController::class, 'store'])
-        ->name('booking.store');
-
-    Route::post('/booking/cancel', [BookingController::class, 'cancelBooking'])
-        ->name('booking.cancel');
+    Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
+    Route::post('/booking/cancel', [BookingController::class, 'cancelBooking'])->name('booking.cancel');
 });
+
+/**
+ * =========================
+ * USER API (AJAX / FETCH)
+ * =========================
+ */
+Route::middleware(['auth', 'role:user'])
+    ->prefix('api/user')
+    ->group(function () {
+        Route::get('/booking/check-availability', [BookingController::class, 'checkAvailability'])
+            ->name('api.user.booking.check-availability');
+
+        Route::get('/booking/detail/{booking}', [BookingController::class, 'show'])
+            ->name('api.user.booking.show');
+
+        Route::get('/booking/{reservation}/qrcode', [BookingController::class, 'generateQRCode'])
+            ->name('api.user.booking.qrcode');
+    });
