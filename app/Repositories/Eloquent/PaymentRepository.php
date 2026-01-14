@@ -12,9 +12,8 @@ class PaymentRepository implements PaymentRepositoryInterface
         return Payment::create($data);
     }
 
-    public function updateStatusByReservation(int $reservationId, string $status)
+    public function find(int $id)
     {
-        Payment::where('reservation_id', $reservationId)
-            ->update(['status' => $status]);
+        return Payment::find($id);
     }
 }

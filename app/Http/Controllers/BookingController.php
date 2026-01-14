@@ -6,6 +6,8 @@ use App\Services\Reservations\ReservationQueryService;
 use App\Services\Reservations\ReservationCreationService;
 use App\Services\Reservations\ReservationCancellationService;
 use App\Services\Reservations\ReservationQrCodeService;
+use App\Services\Reservations\ReservationStatusService;
+use App\Services\Payments\PaymentStatusService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
@@ -16,17 +18,23 @@ class BookingController extends Controller
     protected $creationService;
     protected $cancellationService;
     protected $qrCodeService;
+    protected $statusService;
+    protected $paymentStatusService;
 
     public function __construct(
         ReservationQueryService $queryService,
         ReservationCreationService $creationService,
         ReservationCancellationService $cancellationService,
-        ReservationQrCodeService $qrCodeService
+        ReservationQrCodeService $qrCodeService,
+        ReservationStatusService $statusService,
+        PaymentStatusService $paymentStatusService
     ) {
         $this->queryService = $queryService;
         $this->creationService = $creationService;
         $this->cancellationService = $cancellationService;
         $this->qrCodeService = $qrCodeService;
+        $this->statusService = $statusService;
+        $this->paymentStatusService = $paymentStatusService;
     }
 
     public function generateQRCode(string $reservationNumber)

@@ -7,6 +7,7 @@ import {
     DialogTitle,
     DialogDescription,
 } from "@/Components/ui/dialog";
+import { Badge } from "@/Components/ui/badge";
 import { formatDateID, formatTimeHM } from "@/lib/utils";
 import { Spinner } from "../ui/spinner";
 import { toast } from "sonner";
@@ -201,6 +202,15 @@ export default function BookingDetailModal({ isOpen, onClose, bookingId }) {
                                                 <span className="font-medium uppercase block">
                                                     {payment.payment_provider} (
                                                     {payment.method})
+                                                    {payment.proof_image && (
+                                                        <a
+                                                            href={`/storage/${payment.proof_image}`}
+                                                            target="_blank"
+                                                            className="italic underline capitalize ml-2 font-normal text-blue-500 hover:text-blue-700"
+                                                        >
+                                                            Bukti
+                                                        </a>
+                                                    )}
                                                 </span>
                                                 <span className="text-[10px] rounded-full">
                                                     {formatDateID(
@@ -215,19 +225,20 @@ export default function BookingDetailModal({ isOpen, onClose, bookingId }) {
                                                         "id-ID"
                                                     ).format(payment.amount)}
                                                 </span>
-                                                <span
-                                                    className={`text-[10px] p-1 rounded-full ${
+                                                <Badge
+                                                    variant={
                                                         payment.status ===
-                                                        "success"
-                                                            ? "bg-emerald-100 text-emerald-700"
+                                                        "verified"
+                                                            ? "success"
                                                             : payment.status ===
                                                               "pending"
-                                                            ? "bg-yellow-100 text-yellow-700"
-                                                            : "bg-red-100 text-red-700"
-                                                    }`}
+                                                            ? "warning"
+                                                            : "destructive"
+                                                    }
+                                                    className="text-[10px] px-2 py-0.5"
                                                 >
                                                     {payment.status}
-                                                </span>
+                                                </Badge>
                                             </div>
                                         </div>
                                     ))}

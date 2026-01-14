@@ -90,7 +90,7 @@ export default function ReservationStatusBadge({
                 case "partial_paid":
                     return {
                         label: "Bayar 50%",
-                        variant: "success",
+                        variant: "warning",
                         icon: Banknote,
                     };
                 case "failed":
@@ -98,6 +98,12 @@ export default function ReservationStatusBadge({
                         label: "Gagal",
                         variant: "destructive",
                         icon: XCircle,
+                    };
+                case "refunded":
+                    return {
+                        label: "Dana Dikembalikan",
+                        variant: "gray",
+                        icon: CornerUpLeft,
                     };
                 default:
                     return {

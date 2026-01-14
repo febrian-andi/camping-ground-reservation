@@ -88,6 +88,16 @@ export default function PaymentSelection({
                     </span>
                 </div>
                 <div className="flex justify-between items-center pt-2">
+                    <span className="text-gray-900 font-bold">
+                        Jenis Pembayaran
+                    </span>
+                    <span className="text-emerald-600 font-bold text-lg">
+                        {bookingData.paymentType === "full_paid"
+                            ? "Lunas"
+                            : "50%"}
+                    </span>
+                </div>
+                <div className="flex justify-between items-center pt-2">
                     <span className="text-gray-900 font-bold">Total</span>
                     <span className="text-emerald-600 font-bold text-lg">
                         {formatIDR(bookingData.totalAmount)}
@@ -107,7 +117,7 @@ export default function PaymentSelection({
                     >
                         <input
                             type="radio"
-                            name="payment"
+                            name="payment_type"
                             className="mr-3"
                             checked={bookingData.paymentType === "full_paid"}
                             onChange={() =>
@@ -132,7 +142,7 @@ export default function PaymentSelection({
                     >
                         <input
                             type="radio"
-                            name="payment"
+                            name="payment_type"
                             className="mr-3"
                             checked={bookingData.paymentType === "partial_paid"}
                             onChange={() =>
@@ -169,7 +179,7 @@ export default function PaymentSelection({
                         >
                             <input
                                 type="radio"
-                                name="payment"
+                                name="payment_provider"
                                 className="mr-3"
                                 checked={bookingData.paymentProvider === key}
                                 onChange={() =>

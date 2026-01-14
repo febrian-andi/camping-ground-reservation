@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class reservation extends Model
+class Reservation extends Model
 {
     use HasFactory, SoftDeletes;
 
@@ -44,6 +44,22 @@ class reservation extends Model
     public function payments()
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function getTotalPaidAttribute(): array
+    {
+        $totalAmount = $this->payments()
+            ->where('status', 'verified')
+            ->sum('amount');
+
+        $percentage = $this->total_price > 0
+            ? ($totalAmount / $this->total_price) * 100
+            : 0;
+
+        return [
+            'amount' => $totalAmount,
+            'percentage' => round($percentage, 2),
+        ];
     }
 
     public function blockAvailabilities()

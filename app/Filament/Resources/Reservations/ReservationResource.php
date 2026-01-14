@@ -22,7 +22,15 @@ class ReservationResource extends Resource
 {
     protected static ?string $model = Reservation::class;
 
+    protected static string|\UnitEnum|null $navigationGroup = 'Reservations';
+    protected static ?int $navigationSort = -11;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    public static function getPermissionPrefix(): string
+    {
+        return 'reservation';
+    }
 
     public static function form(Schema $schema): Schema
     {

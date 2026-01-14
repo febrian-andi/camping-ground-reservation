@@ -24,6 +24,8 @@ class CampingGroundResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'Camping Grounds';
 
+    protected static ?int $navigationSort = -15;
+
     public static function form(Schema $schema): Schema
     {
         return CampingGroundForm::configure($schema);

@@ -89,7 +89,8 @@ export default function BookingHistoryList({
                             {res.reservation_cancellation_request_status ===
                                 null &&
                                 res.status !== "completed" &&
-                                res.status !== "rejected" && (
+                                res.status !== "rejected" &&
+                                res.actual_check_in_time === null && (
                                     <Button
                                         onClick={() => onCancel(res.id)}
                                         variant="destructive"

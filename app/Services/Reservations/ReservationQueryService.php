@@ -69,6 +69,7 @@ class ReservationQueryService
                     'method' => $payment->method,
                     'payment_provider' => $payment->payment_provider,
                     'amount' => $payment->amount,
+                    'proof_image' => $payment->proof_image,
                     'status' => $payment->status,
                     'created_at' => $payment->created_at,
                 ];

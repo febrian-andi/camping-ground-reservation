@@ -2,26 +2,32 @@
 
 namespace App\Services\Reservations;
 
-use App\Repositories\Contracts\ReservationRepositoryInterface;
+use App\Models\ReservationCancellationRequest;
 use App\Repositories\Contracts\CancellationRepositoryInterface;
-use App\Repositories\Contracts\ReservationStatusHistoryRepositoryInterface;
+use App\Repositories\Contracts\ReservationRepositoryInterface;
+use App\Services\Payments\PaymentCreationService;
+use App\Services\Reservations\ReservationStatusService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ReservationCancellationService
 {
     protected $reservationRepository;
     protected $cancellationRepository;
-    protected $statusHistoryRepository;
+    protected $reservationStatusService;
+    protected $paymentCreationService;
 
     public function __construct(
         ReservationRepositoryInterface $reservationRepository,
         CancellationRepositoryInterface $cancellationRepository,
-        ReservationStatusHistoryRepositoryInterface $statusHistoryRepository
+        ReservationStatusService $reservationStatusService,
+        PaymentCreationService $paymentCreationService
     ) {
         $this->reservationRepository = $reservationRepository;
         $this->cancellationRepository = $cancellationRepository;
-        $this->statusHistoryRepository = $statusHistoryRepository;
+        $this->reservationStatusService = $reservationStatusService;
+        $this->paymentCreationService = $paymentCreationService;
     }
 
     public function submitCancellationRequest($data)
@@ -36,9 +42,14 @@ class ReservationCancellationService
             throw new \Exception('Pengajuan pembatalan tidak dapat dibuat karena status reservasi sudah selesai.');
         }
 
+        if ($reservation->status === 'confirmed' && $reservation->actual_check_in_time !== null) {
+            throw new \Exception('Pengajuan pembatalan tidak dapat dibuat karena status reservasi sudah check-in.');
+        }
+
         if ($reservation->status === 'cancelled') {
             throw new \Exception('Status reservasi sudah dibatalkan.');
         }
+
 
         $reservationCancellationRequest = $this->cancellationRepository->findByReservationId($reservation->id);
 
@@ -54,78 +65,68 @@ class ReservationCancellationService
         ]);
     }
 
-    public function processCancellationRequest($reservationId, $status)
+    public function approve(ReservationCancellationRequest $request, array $refundData = [])
     {
-        $reservation = $this->reservationRepository->findWithDetails($reservationId);
+        try {
+            DB::beginTransaction();
 
-        if (in_array($reservation->status, ['completed', 'cancelled'])) {
-            throw new \Exception('Reservasi tidak dapat dibatalkan.');
-        }
+            $payments = $request->reservation->payments()->where('status', 'verified')->get();
+            $totalAmount = $payments->sum('amount');
 
-        if (!$reservation->cancellationRequest) {
-            throw new \Exception('Reservasi tidak memiliki permintaan pembatalan.');
-        }
+            if ($totalAmount === 0) {
+                throw new \Exception('Tidak ada pembayaran yang ditemukan untuk reservasi ini.');
+            }
 
-        if ($reservation->cancellationRequest->status !== 'pending') {
-            throw new \Exception('Permintaan pembatalan sudah diproses.');
-        }
+            $this->reservationStatusService->changeStatus(
+                $request->reservation_id,
+                'cancelled',
+            );
 
-        DB::transaction(function () use ($reservation, $status) {
-            $this->cancellationRepository->update($reservation->cancellationRequest->id, [
-                'status' => $status,
+            $request->reservation->update([
+                'payment_status' => 'refunded',
+            ]);
+
+            $totalRefundAmount = $totalAmount;
+
+            if ($totalAmount === $request->reservation->total_price && $request->reservation->payment_status === 'full_paid') {
+                $totalRefundAmount = $totalAmount * 0.5;
+            }
+
+            $this->paymentCreationService->create([
+                'reservation_id' => $request->reservation_id,
+                'user_id' => Auth::id(),
+                'amount' => $totalRefundAmount,
+                'method' => 'transfer',
+                'payment_provider' => null,
+                'status' => 'refunded',
+                'proof_image' => $refundData['proof_image'] ?? null,
+                'created_at' => now(),
+            ]);
+
+            $request->reservation->blockAvailabilities()->update([
+                'status' => 'cancelled',
+            ]);
+
+            $request->update([
+                'status' => 'approved',
                 'decided_at' => now(),
                 'decided_by' => Auth::id(),
             ]);
 
-            if ($status === 'approved') {
-                $oldStatus = $reservation->status;
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
 
-                $this->reservationRepository->update($reservation->id, [
-                    'status' => 'cancelled',
-                ]);
 
-                // Update block availability status
-                // Assuming we have BlockAvailabilityRepository injected or we use the relationship if Repo supports "updateByReservation"
-                // But wait, I didn't inject BlockAvailabilityRepository here.
-                // Should I? Or use the relationship on the model?
-                // The prompt asked for Service-Repository pattern.
-                // Ideally I should inject BlockAvailabilityRepository.
-                // But $reservation->blockAvailabilities() is a relationship.
-                // Using Models in Service is technically okay for relationships if we treat them as entities.
-                // But strict pattern says use Repo.
-                // I'll stick to Repo for writes.
-                // I need BlockAvailabilityRepositoryInterface. 
-                // I didn't add it to Constructor. I'll rely on relation update for now or add it.
-                // Adding it is better.
-                // But I'm in middle of a chunk.
-                // I will use $reservation->update(...) as I replaced it.
-                // For relationships, strict repo pattern often uses specific methods. 
-                // e.g. $availRepo->updateStatusForReservation($reservation->id, 'cancelled');
-                // I created that method! `updateStatusForReservation`.
-                // So I should use it.
-                // But I didn't inject it.
-                // I'll update the imports/constructor in Chunk 1? No, I've already defined Chunk 1.
-                // I will modify this chunk to just use the relation for now as it's efficient, OR
-                // Update Chunk 1 to include BlockAvailabilityRepository.
-                // I can't update Chunk 1 now.
-                // I'll use relation update for now, it's consistent with "Service orchestrates".
-
-                $reservation->blockAvailabilities()->update([
-                    'status' => 'cancelled',
-                ]);
-
-                $reservation->payments()->update([
-                    'status' => 'refunded',
-                ]);
-
-                $this->statusHistoryRepository->create([
-                    'reservation_id' => $reservation->id,
-                    'old_status' => $oldStatus,
-                    'new_status' => 'cancelled',
-                    'note' => 'Permintaan pembatalan disetujui admin.',
-                    'created_by' => Auth::id(),
-                ]);
-            }
-        });
+    public function reject(ReservationCancellationRequest $request)
+    {
+        $request->update([
+            'status' => 'rejected',
+            'decided_at' => now(),
+            'decided_by' => Auth::id(),
+        ]);
     }
 }

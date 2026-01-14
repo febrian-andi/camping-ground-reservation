@@ -8,18 +8,15 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 
-class AdminUserSeeder extends Seeder
+class UserSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        $role = Role::firstOrCreate(
-            ['name' => 'super_admin', 'guard_name' => 'web']
-        );
+        $superAdminRole = Role::firstWhere('name', 'super_admin');
+        $adminRole = Role::firstWhere('name', 'admin');
+        $userRole = Role::firstWhere('name', 'user');
 
-        $user = User::firstOrCreate(
+        $superAdmin = User::firstOrCreate(
             ['email' => 'superadmin@example.com'],
             [
                 'name' => 'Super Admin',
@@ -27,14 +24,9 @@ class AdminUserSeeder extends Seeder
                 'password' => Hash::make('12345678'),
             ]
         );
+        $superAdmin->assignRole($superAdminRole);
 
-        $user->assignRole($role);
-
-        $role = Role::firstOrCreate(
-            ['name' => 'admin', 'guard_name' => 'web']
-        );
-
-        $user = User::firstOrCreate(
+        $admin = User::firstOrCreate(
             ['email' => 'admin@example.com'],
             [
                 'name' => 'Admin',
@@ -42,12 +34,7 @@ class AdminUserSeeder extends Seeder
                 'password' => Hash::make('12345678'),
             ]
         );
-
-        $user->assignRole($role);
-
-        $role = Role::firstOrCreate(
-            ['name' => 'user', 'guard_name' => 'web']
-        );
+        $admin->assignRole($adminRole);
 
         $user = User::firstOrCreate(
             ['email' => 'user@example.com'],
@@ -57,7 +44,6 @@ class AdminUserSeeder extends Seeder
                 'password' => Hash::make('12345678'),
             ]
         );
-
-        $user->assignRole($role);
+        $user->assignRole($userRole);
     }
 }

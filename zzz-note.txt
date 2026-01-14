@@ -1,0 +1,36 @@
+[X] Wajib DP 50%
+[X] Tabel reservations => tambah payment_status(pending, partial_paid, full_paid, failed, refunded)
+[X] Tabel patyments
+    => method -> ubah on_arrival jadi cash -> khusus pelunasan
+    => tambah payment_provider(BCA, BNI, BRI, DANA, Gopay)
+    => status(pending, verified, failed, refunded)
+[] Alert max size untuk proof_image di inertia react js
+[] Tabel baru kavling => block has many kavling
+[] Ubah nama tabel block_availabilities -> kavling_availabilities
+[] POS (point of sale)/kasir
+[] Buat tabel settings 
+    id, site_name, site_tagline, site_description, logo, favicon, 
+    contact{
+        "email": "admin@abc.com",
+        "phone_number": "08123456789",
+        "address": "Jakarta"
+    },
+    social_media{
+        "instagram": "https://instagram.com/abc",
+        "facebook": "https://facebook.com/abc",
+        "youtube": null
+    },
+    payment{
+        "bca": {
+            "name": "PT ABC",
+            "number": "123456789"
+        },
+        "dana": {
+            "name": "my name"
+            "number": "08123456789"
+        }
+    },
+    maintenance {
+        "enabled": false,
+        "message": "Website sedang maintenance"
+    }

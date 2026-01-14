@@ -5,5 +5,5 @@ namespace App\Repositories\Contracts;
 interface PaymentRepositoryInterface
 {
     public function create(array $data);
-    public function updateStatusByReservation(int $reservationId, string $status);
+    public function find(int $id);
 }

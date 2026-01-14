@@ -110,7 +110,7 @@ class ReservationCreationService
 
             $amount = $data['payment_type'] === 'partial_paid' ? $totalPrice * 0.5 : $totalPrice;
 
-            $proofPath = $data['proof_image']->store('payment_proofs', 'public');
+            $proofPath = $data['proof_image']->store('images/payment_proofs', 'public');
 
             $this->paymentRepository->create([
                 'reservation_id' => $reservation->id,
